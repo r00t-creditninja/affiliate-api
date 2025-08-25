@@ -99,15 +99,32 @@ const AgoraLeadSchema = z
     }
   });
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*", // allow all
+  "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+  // list the headers you plan to receive; include "authorization" if you send it
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Requested-With",
+  // optional: reduce preflight frequency
+  "Access-Control-Max-Age": "86400",
+};
+
+export async function OPTIONS(_req: NextRequest) {
+  // Preflight: must include CORS headers even with 204
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function POST(req: NextRequest) {
   await new Promise((resolve) =>
     setTimeout(resolve, 5000 + Math.random() * 4000)
   );
-  return NextResponse.json(
+  const res = NextResponse.json(
     {
       status: "accepted",
       redirectUrl: "https://google.com",
     },
     { status: 200 }
   );
+  Object.entries(CORS_HEADERS).forEach(([k, v]) => res.headers.set(k, v));
+  return res;
 }
