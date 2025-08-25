@@ -100,91 +100,14 @@ const AgoraLeadSchema = z
   });
 
 export async function POST(req: NextRequest) {
-  try {
-    await new Promise((resolve) =>
-      setTimeout(resolve, 5000 + Math.random() * 4000)
-    );
-    return NextResponse.json(
-      {
-        status: "accepted",
-        redirectUrl: "https://google.com",
-      },
-      { status: 200 }
-    );
-    const raw = await req.json();
-    const parsed = AgoraLeadSchema.parse(raw);
-
-    // Map bankMonths -> subID3 if needed; remove the convenience key
-    const payload: Record<string, unknown> = { ...parsed };
-    if (payload.bankMonths !== undefined && payload.subID3 === undefined) {
-      payload.subID3 = payload.bankMonths;
-    }
-    delete payload.bankMonths;
-
-    // Compose Agora URL from env (fallback keeps path shape for non-prod)
-    const base =
-      process.env.AGORA_BASE_URL ??
-      "https://creditninja-agora.digitaljobler.com";
-    const url = `${base}/api/v1/service/submit`;
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "API-KEY": process.env.AGORA_API_KEY || "",
-        "API-SECRET": process.env.AGORA_API_SECRET || "",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    // Try to parse JSON; fall back to text
-    const text = await res.text();
-    let upstream: any;
-    try {
-      upstream = JSON.parse(text);
-    } catch {
-      upstream = { raw: text };
-    }
-
-    // Normalize responses for the UI
-    if (res.status === 200 && upstream?.status === "ACCEPTED") {
-      return NextResponse.json(
-        {
-          status: "accepted",
-          redirectUrl: upstream.redirectUrl,
-          price: upstream.price,
-        },
-        { status: 200 }
-      );
-    }
-    if (res.status === 200 && upstream?.status === "REJECTED") {
-      return NextResponse.json(
-        { status: "rejected", message: upstream?.message ?? "rejected" },
-        { status: 200 }
-      );
-    }
-
-    // Bubble up validation/auth/other errors with context
-    return NextResponse.json(
-      {
-        status: "error",
-        upstreamStatus: res.status,
-        upstream,
-      },
-      { status: res.status }
-    );
-  } catch (err: any) {
-    if (err?.issues) {
-      // Zod validation error
-      return NextResponse.json(
-        { status: "validation_error", errors: err.flatten?.() ?? err },
-        { status: 422 }
-      );
-    }
-    return NextResponse.json(
-      { status: "error", message: "Unexpected server error" },
-      { status: 500 }
-    );
-  }
+  await new Promise((resolve) =>
+    setTimeout(resolve, 5000 + Math.random() * 4000)
+  );
+  return NextResponse.json(
+    {
+      status: "accepted",
+      redirectUrl: "https://google.com",
+    },
+    { status: 200 }
+  );
 }
