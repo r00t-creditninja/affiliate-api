@@ -101,6 +101,16 @@ const AgoraLeadSchema = z
 
 export async function POST(req: NextRequest) {
   try {
+    await new Promise((resolve) =>
+      setTimeout(resolve, 5000 + Math.random() * 4000)
+    );
+    return NextResponse.json(
+      {
+        status: "accepted",
+        redirectUrl: "https://google.com",
+      },
+      { status: 200 }
+    );
     const raw = await req.json();
     const parsed = AgoraLeadSchema.parse(raw);
 
