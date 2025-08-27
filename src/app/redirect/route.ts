@@ -9,8 +9,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
+  const decoded = Buffer.from(token, "base64").toString("utf-8");
+
   // Decrypt the token to get the original URL
-  const decrypted = await decrypt(token);
+  const decrypted = await decrypt(decoded);
   return NextResponse.redirect(decrypted);
 }
 export async function decrypt(jwe: string) {
