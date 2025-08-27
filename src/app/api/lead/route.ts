@@ -1,7 +1,7 @@
 // app/api/agora/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
+import { CompactEncrypt } from "jose";
 export const runtime = "nodejs";
 
 /**
@@ -114,29 +114,12 @@ export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }
 
-async function encrypt(text: string): Promise<string> {
-  // Symmetric encryption logic goes here, has to use strong encryption, read variable from "ENRCRYPTION_KEY" and encrypt string using it
-  const rawKey = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
-  const key = await crypto.subtle.importKey(
-    "raw",
-    rawKey,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt"]
-  );
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const encodedText = new TextEncoder().encode(text);
-  const cipher = await crypto.subtle.encrypt(
-    {
-      name: "AES-GCM",
-      iv: iv,
-    },
-    key,
-    encodedText
-  );
-  return `${Buffer.from(iv).toString("base64")}:${Buffer.from(cipher).toString(
-    "base64"
-  )}`;
+export async function encrypt(plaintext: string) {
+  const pw = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
+  const jwe = await new CompactEncrypt(new TextEncoder().encode(plaintext))
+    .setProtectedHeader({ alg: "PBES2-HS256+A256KW", enc: "A256GCM" })
+    .encrypt(pw);
+  return jwe; // compact JWE string
 }
 
 export async function POST(req: NextRequest) {
