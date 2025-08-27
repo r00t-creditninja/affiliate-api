@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
 }
 export async function decrypt(jwe: string) {
   const pw = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
+  console.log("Decrypting token:", jwe);
+  console.log("Using key:", pw);
   const { plaintext } = await compactDecrypt(jwe, pw);
+  console.log("Decrypted token:", plaintext);
   return new TextDecoder().decode(plaintext);
 }
