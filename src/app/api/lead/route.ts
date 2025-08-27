@@ -117,7 +117,7 @@ export async function OPTIONS(_req: NextRequest) {
 export async function encrypt(plaintext: string) {
   const pw = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
   const jwe = await new CompactEncrypt(new TextEncoder().encode(plaintext))
-    .setProtectedHeader({ alg: "PBES2-HS256+A256KW", enc: "A256GCM" })
+    .setProtectedHeader({ alg: "PBES2-HS512+A256KW", enc: "A256GCM" })
     .encrypt(pw);
   return jwe; // compact JWE string
 }
