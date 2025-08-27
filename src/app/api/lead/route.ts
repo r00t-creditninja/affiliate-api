@@ -114,14 +114,43 @@ export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }
 
+async function encrypt(text: string): Promise<string> {
+  // Symmetric encryption logic goes here, has to use strong encryption, read variable from "ENRCRYPTION_KEY" and encrypt string using it
+  const rawKey = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    rawKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"]
+  );
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encodedText = new TextEncoder().encode(text);
+  const cipher = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv: iv,
+    },
+    key,
+    encodedText
+  );
+  return `${Buffer.from(iv).toString("base64")}:${Buffer.from(cipher).toString(
+    "base64"
+  )}`;
+}
+
 export async function POST(req: NextRequest) {
   await new Promise((resolve) =>
     setTimeout(resolve, 5000 + Math.random() * 4000)
   );
+
+  const encrypted = await encrypt("https://google.com");
+  const base64Encrypted = Buffer.from(encrypted).toString("base64");
   const res = NextResponse.json(
     {
       status: "accepted",
-      redirectUrl: "https://google.com",
+      redirectUrl:
+        "https://prod.americacashfast.com/redirect?token=" + base64Encrypted,
     },
     { status: 200 }
   );
