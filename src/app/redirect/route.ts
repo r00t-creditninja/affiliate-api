@@ -22,7 +22,10 @@ export async function decrypt(jwe: string) {
   const pw = new TextEncoder().encode(process.env.ENCRYPTION_KEY);
   console.log("Decrypting token:", jwe);
   console.log("Using key:", pw);
-  const { plaintext } = await compactDecrypt(jwe, pw);
+  const { plaintext } = await compactDecrypt(jwe, pw, {
+    keyManagementAlgorithms: ["PBES2-HS512+A256KW"],
+    contentEncryptionAlgorithms: ["A256GCM"],
+  });
   console.log("Decrypted token:", plaintext);
   return new TextDecoder().decode(plaintext);
 }
